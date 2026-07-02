@@ -1,0 +1,131 @@
+package ai.devshield.rag;
+
+import ai.devshield.persistence.ComplianceRule;
+import dev.langchain4j.model.chat.ChatLanguageModel;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
+
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Constructs the RAG prompt and invokes the LLM.
+ * Gracefully falls back to a structured mock review in demo mode.
+ */
+@Component
+@Slf4j
+public class ReviewGenerator {
+
+    private final Optional<ChatLanguageModel> chatModel;
+
+    @Value("${devshield.demo-mode:true}")
+    private boolean demoMode;
+
+    public ReviewGenerator(Optional<ChatLanguageModel> chatModel) {
+        this.chatModel = chatModel;
+    }
+
+    public Mono<String> generate(String diff, List<ComplianceRule> rules) {
+        if (demoMode || chatModel.isEmpty()) {
+            return Mono.just(buildMockReview(diff, rules));
+        }
+        return Mono.fromCallable(() -> {
+            String prompt = buildPrompt(diff, rules);
+            log.info("Calling LLM with {} rules in context, diff length={}", rules.size(), diff.length());
+            return chatModel.get().generate(prompt);
+        });
+    }
+
+    private String buildPrompt(String diff, List<ComplianceRule> rules) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("""
+                You are DevShieldAI, an expert security and compliance code reviewer.
+                Analyze the following code diff against the retrieved compliance rules.
+                For each violation found, provide:
+                1. The line number(s) affected
+                2. The rule violated (by name and category)
+                3. Severity level
+                4. A specific, actionable fix recommendation
+
+                Format your response as structured Markdown.
+                
+                ## Compliance Rules Context
+                """);
+        for (ComplianceRule rule : rules) {
+            sb.append(String.format("### [%s] %s (%s)\n%s\n\n",
+                    rule.severity(), rule.name(), rule.category(), rule.ruleText()));
+        }
+        sb.append("\n## Code Diff to Review\n```diff\n").append(diff).append("\n```\n\n");
+        sb.append("## Compliance Review\n");
+        return sb.toString();
+    }
+
+    private String buildMockReview(String diff, List<ComplianceRule> rules) {
+        return """
+                ## 🛡️ DevShieldAI Compliance Review
+
+                > **Analysis Mode**: Demo (mock review — set `DEMO_MODE=false` and provide `OPENAI_API_KEY` for live AI analysis)
+
+                ---
+
+                ### ⚠️ Critical Findings
+
+                #### 1. SQL Injection Risk — Line ~14
+                **Rule**: SQL Injection Prevention (OWASP-A03) · **Severity**: 🔴 CRITICAL
+
+                ```diff
+                - String query = "SELECT * FROM users WHERE id = " + userId;
+                + String query = "SELECT * FROM users WHERE id = :userId";
+                + // Use parameterized queries exclusively
+                ```
+                **Recommendation**: Replace string concatenation with named parameters. Use Spring Data JPA `@Query` with `:param` bindings or `JdbcTemplate.queryForObject()` with `PreparedStatement`.
+
+                ---
+
+                #### 2. Sensitive Data in Logs — Line ~27
+                **Rule**: Sensitive Data Exposure in Logs (OWASP-A02) · **Severity**: 🔴 HIGH
+
+                ```diff
+                - log.debug("Processing user: email={}, password={}", user.getEmail(), user.getPassword());
+                + log.debug("Processing user: userId={}", user.getId());
+                ```
+                **Recommendation**: Remove PII from log statements. Annotate sensitive fields with `@Sensitive` and configure a log sanitizer. Never log passwords, tokens, or email addresses.
+
+                ---
+
+                #### 3. Missing Input Validation — Line ~8
+                **Rule**: Input Validation and Sanitization (OWASP-A03) · **Severity**: 🟠 HIGH
+
+                The incoming `userId` parameter is not validated before use. Add:
+                ```java
+                @NotNull @Positive @Max(Long.MAX_VALUE)
+                ```
+                to the controller parameter and ensure `@Valid` is present on the method signature.
+
+                ---
+
+                ### ✅ Passed Checks
+                - No hardcoded credentials detected
+                - Error responses do not expose stack traces
+                - Authentication token validation appears present
+
+                ---
+
+                ### 📊 Summary
+
+                | Severity | Count |
+                |----------|-------|
+                | 🔴 Critical | 1 |
+                | 🟠 High | 2 |
+                | 🟡 Medium | 0 |
+                | 🟢 Low | 0 |
+
+                **Rules evaluated**: %d compliance rules matched from your compliance database.
+
+                ---
+                *Generated by DevShieldAI · %s UTC*
+                """.formatted(rules.size(), java.time.Instant.now().toString().substring(0, 19));
+    }
+}
