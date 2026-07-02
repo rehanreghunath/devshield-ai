@@ -39,7 +39,7 @@ dependencies {
 
     // LangChain4j
     implementation "dev.langchain4j:langchain4j:${langchain4jVersion}"
-    implementation "dev.langchain4j:langchain4j-open-ai:${langchain4jVersion}"
+    implementation "dev.langchain4j:langchain4j-google-ai-gemini:${langchain4jVersion}"
     implementation "dev.langchain4j:langchain4j-pgvector:${langchain4jVersion}"
 
     // Redis client

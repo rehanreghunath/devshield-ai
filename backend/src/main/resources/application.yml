@@ -38,11 +38,11 @@ management:
       show-details: always
 
 devshield:
-  openai:
-    api-key: ${OPENAI_API_KEY:demo-key}
-    chat-model: gpt-4o
-    embedding-model: text-embedding-3-small
-    embedding-dimensions: 1536
+  googleai:
+    api-key: ${GEMINI_API_KEY:demo-key}
+    chat-model: gemini-2.5-flash
+    embedding-model: gemini-embedding-001
+    embedding-dimensions: 3072
   rate-limit:
     tokens-per-minute: 10
     bucket-ttl-seconds: 60

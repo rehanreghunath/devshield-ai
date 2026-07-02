@@ -24,7 +24,7 @@ docker compose up --build
 
 ```bash
 # Set in docker-compose.yml or .env:
-OPENAI_API_KEY=sk-...
+GEMINI_API_KEY=<your-key-here>
 DEMO_MODE=false
 ```
 
@@ -45,12 +45,25 @@ curl -X POST http://localhost:8080/api/webhooks/github \
 
 ## Kubernetes
 
-```bash
-kubectl create namespace devshield
-kubectl apply -f k8s/
+1. Create `.env` and set your actual `GEMINI_API_KEY`:
 
-# Edit k8s/configmap.yaml to set DEMO_MODE=false and OPENAI_API_KEY
-```
+2. Create the namespace:
+   ```bash
+   kubectl create namespace devshield
+   ```
+
+3. Deploy the ConfigMap & Secrets (substituting the environment variables from `.env`):
+   ```bash
+   export $(grep -v '^#' .env | xargs) && envsubst < k8s/configmap.yaml | kubectl apply -f -
+   ```
+
+4. Apply the remaining manifests:
+   ```bash
+   kubectl apply -f k8s/postgres-statefulset.yaml
+   kubectl apply -f k8s/redis-deployment.yaml
+   kubectl apply -f k8s/backend-deployment.yaml
+   kubectl apply -f k8s/frontend-deployment.yaml
+   ```
 
 ## Architecture
 

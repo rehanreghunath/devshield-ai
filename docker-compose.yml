@@ -42,8 +42,8 @@ services:
       POSTGRES_PASSWORD: devshield
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-demo-key}
-      DEMO_MODE: ${DEMO_MODE:-true}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-demo-key}
+      DEMO_MODE: ${DEMO_MODE:-false}
       SPRING_PROFILES_ACTIVE: docker
     ports:
       - "8080:8080"
@@ -63,6 +63,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        INTERNAL_API_URL: http://backend:8080
     container_name: devshield-frontend
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8080
