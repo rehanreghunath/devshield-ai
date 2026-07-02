@@ -3,12 +3,25 @@ import type { AnalysisJob, ReviewResult, WebhookPayload, WebhookResponse } from 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? ''
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
-    ...init,
-  })
+  const url = `${BASE}${path}`
+  let res: Response
+  try {
+    res = await fetch(url, {
+      headers: { 'Content-Type': 'application/json', ...init?.headers },
+      ...init,
+    })
+  } catch (err) {
+    // TypeError = network-level failure (ECONNREFUSED, no backend, CORS preflight crash)
+    if (err instanceof TypeError) {
+      throw new Error(
+        `Backend unreachable at ${BASE || 'http://localhost:8080'}. ` +
+        `Start the backend with: docker compose up postgres redis backend -d`
+      )
+    }
+    throw err
+  }
   if (!res.ok) {
-    const body = await res.text()
+    const body = await res.text().catch(() => res.statusText)
     throw new Error(`API ${res.status}: ${body}`)
   }
   return res.json() as Promise<T>

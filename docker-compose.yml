@@ -22,7 +22,7 @@ services:
     image: redis:7.4-alpine
     container_name: devshield-redis
     ports:
-      - "6379:6379"
+      - "6380:6379"   # 6379 already in use by local Redis; internal network still uses 6379
     command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
