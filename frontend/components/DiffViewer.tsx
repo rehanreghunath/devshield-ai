@@ -63,7 +63,7 @@ export function DiffViewer({ diff, filename }: DiffViewerProps) {
 
   return (
     <div className="h-full flex flex-col">
-      {/* ── File header ─────────────────────────────────────── */}
+      {/*  File header  */}
       {filename && (
         <div className="flex items-center gap-2 px-4 py-2.5 border-b border-surface-border bg-surface-base/50 text-xs font-mono text-slate-400 flex-shrink-0">
           <FileCode2 className="w-3.5 h-3.5 text-brand-400" />
@@ -71,7 +71,7 @@ export function DiffViewer({ diff, filename }: DiffViewerProps) {
         </div>
       )}
 
-      {/* ── Diff lines ──────────────────────────────────────── */}
+      {/*  Diff lines  */}
       <div className="flex-1 overflow-auto code-block rounded-none border-0">
         <table className="w-full border-collapse text-xs font-mono">
           <tbody>

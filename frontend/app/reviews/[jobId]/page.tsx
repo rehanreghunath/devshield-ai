@@ -110,7 +110,7 @@ export default function ReviewPage() {
   return (
     <div className="max-w-[1600px] mx-auto px-6 py-6 animate-fade-in">
 
-      {/* ── Page header ──────────────────────────────────────── */}
+      {/* Page header */}
       <div className="flex items-start gap-4 mb-6 flex-wrap">
         <button
           onClick={() => router.push('/')}
@@ -156,7 +156,7 @@ export default function ReviewPage() {
         </button>
       </div>
 
-      {/* ── View tabs ────────────────────────────────────────── */}
+      {/* View tabs */}
       <div className="flex items-center gap-1 mb-4 border-b border-surface-border pb-3">
         {(['split', 'diff', 'review'] as const).map(tab => (
           <button
@@ -177,7 +177,7 @@ export default function ReviewPage() {
         </div>
       </div>
 
-      {/* ── Split / single views ─────────────────────────────── */}
+      {/* Split / single views */}
       <div
         className={`min-h-[600px] rounded-xl border border-surface-border overflow-hidden bg-surface-card ${
           activeTab === 'split' ? 'grid grid-cols-2 divide-x divide-surface-border' : ''

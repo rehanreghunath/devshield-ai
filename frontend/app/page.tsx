@@ -86,7 +86,7 @@ export default function DashboardPage() {
   return (
     <div className="max-w-7xl mx-auto px-6 py-10">
 
-      {/* ── Hero ──────────────────────────────────────────────── */}
+      {/* Hero */}
       <div className="mb-10 animate-fade-in">
         <div className="inline-flex items-center gap-2 badge bg-brand-500/10 text-brand-300 border border-brand-500/30 mb-4">
           <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse-ring" />
@@ -101,7 +101,7 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* ── Stats row ─────────────────────────────────────────── */}
+      {/*  Stats row  */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
         {STATS.map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="card flex items-center gap-3">
@@ -116,7 +116,7 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* ── Submit mock PR ────────────────────────────────────── */}
+      {/*  Submit mock PR  */}
       <div className="card mb-8 border-brand-500/20 glow-border">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
@@ -172,7 +172,7 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* ── Job list ──────────────────────────────────────────── */}
+      {/*  Job list  */}
       <JobList />
     </div>
   )

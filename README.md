@@ -1,63 +1,76 @@
 # DevShieldAI
 
-Automated async Code Review & Compliance platform powered by LangChain4j RAG, Spring Boot 3.4 WebFlux, pgvector, Redis, and Next.js 15.
+AI-Powered automated async code review and compliance platform, for GitHub pull requests.
 
-## Quick Start (Docker Compose)
+## Tech Stack
 
-```bash
-# Start all services (Postgres + pgvector, Redis, Backend, Frontend)
-docker compose up --build
+- **Backend**: Spring Boot 3.4, Java 21, WebFlux, Reactor
+- **AI/RAG**: LangChain4j, Google Gemini 2.5 Flash, Gemini Embeddings (gemini-embedding-001)
+- **Vector DB**: PostgreSQL 16 + pgvector
+- **Cache & Queue**: Redis 7.4, Reactive Lettuce, Lua rate limiter
+- **Frontend**: Next.js 15 App Router, TypeScript, Tailwind CSS
+- **Infrastructure**: Docker Compose, Kubernetes
 
-# Frontend → http://localhost:3000
-# Backend  → http://localhost:8080
-# API docs → http://localhost:8080/actuator/health
-```
+## Local Development Setup
 
-## Demo Flow
+Follow these steps to run the project locally from scratch:
 
-1. Open http://localhost:3000
-2. Click **"Trigger Analysis"** — submits a mock vulnerable Java PR
-3. Watch the job progress: `QUEUED → PARSING → IN_PROGRESS → COMPLETED`
-4. Click the job card to open the **split-view review** (Diff + AI feedback)
+1. Clone the repository and navigate to the project directory.
 
-## Live LLM Mode
+2. Create the environment configuration file in the project directory.
 
-```bash
-# Set in docker-compose.yml or .env:
-GEMINI_API_KEY=<your-key-here>
-DEMO_MODE=false
-```
+3. Configure your API key in the `.env` file:
+   ```env
+   # Obtain an API key from Google AI Studio
+   GEMINI_API_KEY=your-gemini-api-key
+   ```
+
+4. Start the application using Docker Compose:
+   ```bash
+   docker compose up --build -d
+   ```
+
+5. Access the services:
+   - Frontend: `http://localhost:3000`
+   - Backend API: `http://localhost:8080`
+
+6. To stop the application and clean up resources:
+   ```bash
+   docker compose down
+   ```
 
 ## Webhook API
+
+Trigger a new code review analysis by sending a webhook payload to the backend API.
 
 ```bash
 curl -X POST http://localhost:8080/api/webhooks/github \
   -H "Content-Type: application/json" \
   -d '{
-    "repoId": "your-org/your-repo",
+    "repoId": "organization/repository",
     "prNumber": 1,
     "diff": "diff --git a/...",
-    "prTitle": "feat: my change",
-    "author": "dev@example.com"
+    "prTitle": "Feature: Implement authentication",
+    "author": "developer@example.com"
   }'
-# → { "jobId": "...", "status": "QUEUED" }
 ```
+Returns: `{ "jobId": "...", "status": "QUEUED" }`
 
-## Kubernetes
+## Kubernetes Deployment
 
-1. Create `.env` and set your actual `GEMINI_API_KEY`:
+1. Configure the `.env` file with your `GEMINI_API_KEY`.
 
-2. Create the namespace:
+2. Create the target namespace:
    ```bash
    kubectl create namespace devshield
    ```
 
-3. Deploy the ConfigMap & Secrets (substituting the environment variables from `.env`):
+3. Deploy the ConfigMap and Secrets by substituting environment variables:
    ```bash
    export $(grep -v '^#' .env | xargs) && envsubst < k8s/configmap.yaml | kubectl apply -f -
    ```
 
-4. Apply the remaining manifests:
+4. Apply the application manifests:
    ```bash
    kubectl apply -f k8s/postgres-statefulset.yaml
    kubectl apply -f k8s/redis-deployment.yaml
@@ -65,30 +78,4 @@ curl -X POST http://localhost:8080/api/webhooks/github \
    kubectl apply -f k8s/frontend-deployment.yaml
    ```
 
-## Architecture
-
-```
-POST /api/webhooks/github
-  → TokenBucketRateLimiter (Redis Lua, 10 req/min per repo)
-  → JobService.enqueue()   (Redis hash + active-jobs set)
-  → RagOrchestrator.analyze() [async, boundedElastic]
-      → EmbeddingModel.embed(diff)          [OpenAI text-embedding-3-small]
-      → ComplianceRuleStore.findSimilar()   [pgvector cosine search]
-      → ReviewGenerator.generate()          [GPT-4o prompt → markdown]
-  → JobService.complete()  (Redis status → COMPLETED + markdown)
-
-GET /api/jobs             → List all jobs (polled by dashboard every 3s)
-GET /api/jobs/{id}        → Single job status
-GET /api/reviews/{id}     → Full review markdown
-```
-
-## Stack
-
-| Layer      | Technology                                  |
-|------------|---------------------------------------------|
-| Backend    | Spring Boot 3.4, Java 21, WebFlux, Reactor  |
-| AI/RAG     | LangChain4j 0.36, OpenAI GPT-4o             |
-| Vector DB  | PostgreSQL 16 + pgvector (IVFFlat index)    |
-| Cache/Jobs | Redis 7.4, Reactive Lettuce, Lua rate limiter|
-| Frontend   | Next.js 15 App Router, TypeScript, Tailwind |
-| Infra      | Docker Compose, Kubernetes, HPA             |
+> **Note**: This project is still under development, and any contributions are welcome. If you find it useful, please consider starring.

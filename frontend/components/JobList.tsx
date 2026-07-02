@@ -41,7 +41,7 @@ export function JobList({ initialJobs = [] }: JobListProps) {
 
   return (
     <div>
-      {/* ── List header ──────────────────────────────────────── */}
+      {/*  List header  */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
           <h2 className="text-base font-semibold text-white">Analysis Jobs</h2>
@@ -65,7 +65,7 @@ export function JobList({ initialJobs = [] }: JobListProps) {
         </button>
       </div>
 
-      {/* ── States ───────────────────────────────────────────── */}
+      {/*  States  */}
       {loading && (
         <div className="flex flex-col items-center justify-center py-16 gap-3 text-slate-500">
           <Loader2 className="w-7 h-7 animate-spin text-brand-400" />

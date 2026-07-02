@@ -21,7 +21,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <div className="min-h-screen flex flex-col">
-          {/* ── Top Nav ─────────────────────────────────────────────── */}
+          {/* Top Nav */}
           <header className="sticky top-0 z-50 border-b border-surface-border bg-surface-base/80 backdrop-blur-md">
             <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
               <a href="/" className="flex items-center gap-2.5 group">
@@ -42,10 +42,10 @@ export default function RootLayout({
             </div>
           </header>
 
-          {/* ── Main ───────────────────────────────────────────────── */}
+          {/* Main */}
           <main className="flex-1">{children}</main>
 
-          {/* ── Footer ─────────────────────────────────────────────── */}
+          {/* Footer */}
           <footer className="border-t border-surface-border mt-auto">
             <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between text-xs text-slate-600">
               <span>© 2026 DevShieldAI · Powered by LangChain4j + pgvector</span>

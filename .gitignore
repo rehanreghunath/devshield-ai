@@ -1,4 +1,4 @@
-# ─── OS / Editor ─────────────────────────────────────────────────────────────
+# OS / Editor 
 .DS_Store
 ._*
 Thumbs.db
@@ -8,9 +8,9 @@ desktop.ini
 *~
 .idea/
 *.iml
-.vscode/*.log
+.vscode/
 
-# ─── Java / Gradle ────────────────────────────────────────────────────────────
+# Java / Gradle
 *.class
 *.jar
 *.war
@@ -27,7 +27,7 @@ bin/
 application-local.yml
 application-local.properties
 
-# ─── Node / Next.js ───────────────────────────────────────────────────────────
+# Node / Next.js
 node_modules/
 npm-debug.log*
 yarn-debug.log*
@@ -42,26 +42,26 @@ out/
 .env.production
 .env.staging
 
-# ─── Docker ───────────────────────────────────────────────────────────────────
+# Docker 
 docker-compose.override.yml
 
-# ─── Kubernetes / Secrets ─────────────────────────────────────────────────────
+# Kubernetes / Secrets 
 k8s/secrets-real.yaml
 k8s/*-sealed.yaml
 
-# ─── Logs / Temp ─────────────────────────────────────────────────────────────
+# Logs / Temp 
 *.log
 logs/
 *.tmp
 *.bak
 *.orig
 
-# ─── Test / Coverage ──────────────────────────────────────────────────────────
+# Test / Coverage 
 coverage/
 .nyc_output/
 jacoco.exec
 *.lcov
 
-# ─── TypeScript ───────────────────────────────────────────────────────────────
+# TypeScript 
 *.tsbuildinfo
 next-env.d.ts
