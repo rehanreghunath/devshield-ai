@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: devshield-config
+  namespace: devshield
+data:
+  POSTGRES_HOST:    "postgres-service"
+  POSTGRES_PORT:    "5432"
+  POSTGRES_DB:      "devshield"
+  POSTGRES_USER:    "devshield"
+  REDIS_HOST:       "redis-service"
+  REDIS_PORT:       "6379"
+  DEMO_MODE:        "true"
+  SPRING_PROFILES_ACTIVE: "k8s"
+  NEXT_PUBLIC_API_URL: "http://backend-service:8080"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: devshield-secrets
+  namespace: devshield
+type: Opaque
+stringData:
+  POSTGRES_PASSWORD: "devshield"
+  OPENAI_API_KEY:    "replace-with-real-key"
