@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: devshield-backend
+
+  r2dbc:
+    url: r2dbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:devshield}
+    username: ${POSTGRES_USER:devshield}
+    password: ${POSTGRES_PASSWORD:devshield}
+    pool:
+      initial-size: 5
+      max-size: 20
+      max-idle-time: 30m
+
+  flyway:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:devshield}
+    user: ${POSTGRES_USER:devshield}
+    password: ${POSTGRES_PASSWORD:devshield}
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+
+server:
+  port: 8080
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+devshield:
+  openai:
+    api-key: ${OPENAI_API_KEY:demo-key}
+    chat-model: gpt-4o
+    embedding-model: text-embedding-3-small
+    embedding-dimensions: 1536
+  rate-limit:
+    tokens-per-minute: 10
+    bucket-ttl-seconds: 60
+  rag:
+    top-k-rules: 5
+    similarity-threshold: 0.75
+  demo-mode: ${DEMO_MODE:true}   # When true, skips real LLM calls and returns mock review
