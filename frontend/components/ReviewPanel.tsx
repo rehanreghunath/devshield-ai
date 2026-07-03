@@ -13,7 +13,7 @@ interface ReviewPanelProps {
 }
 
 export function ReviewPanel({ markdown, status }: ReviewPanelProps) {
-  if (status === 'QUEUED' || status === 'PARSING' || status === 'IN_PROGRESS') {
+  if (status === 'QUEUED' || status === 'PARSING' || status === 'IN_PROGRESS' || status === 'RATE_LIMITED') {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-5 py-20 text-slate-500">
         <div className="relative">
@@ -24,9 +24,10 @@ export function ReviewPanel({ markdown, status }: ReviewPanelProps) {
         </div>
         <div className="text-center">
           <p className="text-white font-medium mb-1">
-            {status === 'QUEUED' ? 'Queued for analysis…' :
-             status === 'PARSING' ? 'Parsing diff…' :
-             'AI analysis in progress…'}
+            {status === 'QUEUED' ? 'Queued for analysis...' :
+             status === 'RATE_LIMITED' ? 'Rate limited, waiting for capacity...' :
+             status === 'PARSING' ? 'Parsing diff...' :
+             'AI analysis in progress...'}
           </p>
           <p className="text-sm text-slate-500">
             RAG engine is retrieving compliance rules and generating review

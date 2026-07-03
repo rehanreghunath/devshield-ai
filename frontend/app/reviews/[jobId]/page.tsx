@@ -12,46 +12,6 @@ import {
 } from 'lucide-react'
 import { formatDistanceToNow, format } from 'date-fns'
 
-const MOCK_DIFF = `diff --git a/src/UserController.java b/src/UserController.java
-index 4f2e1a3..8d92b1c 100644
---- a/src/UserController.java
-+++ b/src/UserController.java
-@@ -1,32 +1,45 @@
- package com.example.controller;
- 
-+import org.springframework.web.bind.annotation.*;
-+import java.sql.*;
-+
- @RestController
- public class UserController {
- 
--    private DataSource ds;
-+    private Connection conn;
- 
--    @GetMapping("/user")
--    public User getUser(@RequestParam String id) {
--        return repo.findById(Long.parseLong(id)).orElseThrow();
-+    @GetMapping("/user/{id}")
-+    public User getUser(@PathVariable String userId) throws Exception {
-+        String query = "SELECT * FROM users WHERE id = " + userId;
-+        Statement stmt = conn.createStatement();
-+        ResultSet rs = stmt.executeQuery(query);
-+        log.debug("User lookup: email={}, password={}", rs.getString("email"), rs.getString("password"));
-+        return mapToUser(rs);
-     }
- 
--    @PostMapping("/user")
--    public ResponseEntity<User> createUser(@RequestBody CreateUserRequest req) {
--        if (req.email() == null) return ResponseEntity.badRequest().build();
--        return ResponseEntity.ok(repo.save(new User(req)));
-+    @PostMapping("/user")
-+    public ResponseEntity<User> createUser(@RequestBody CreateUserRequest req) {
-+        User u = new User(req.name(), req.email(), req.password());
-+        repo.save(u);
-+        return ResponseEntity.ok(u);
-     }
- }`
-
 export default function ReviewPage() {
   const { jobId } = useParams<{ jobId: string }>()
   const router = useRouter()
@@ -73,7 +33,6 @@ export default function ReviewPage() {
     }
   }, [jobId])
 
-  // Poll until completed or failed
   useEffect(() => {
     fetchJob()
     const interval = setInterval(() => {
@@ -105,12 +64,11 @@ export default function ReviewPage() {
     )
   }
 
-  const diff = MOCK_DIFF // In production, diff would be stored per-job
+  const diff = job.diff || ''
 
   return (
     <div className="max-w-[1600px] mx-auto px-6 py-6 animate-fade-in">
 
-      {/* Page header */}
       <div className="flex items-start gap-4 mb-6 flex-wrap">
         <button
           onClick={() => router.push('/')}
@@ -131,7 +89,7 @@ export default function ReviewPage() {
           <div className="flex items-center gap-4 text-xs text-slate-500">
             <span className="flex items-center gap-1">
               <GitPullRequest className="w-3 h-3" />
-              {job.repoId} · PR #{job.prNumber}
+              {job.repoId} - PR #{job.prNumber}
             </span>
             {job.author && (
               <span className="flex items-center gap-1">
@@ -156,7 +114,6 @@ export default function ReviewPage() {
         </button>
       </div>
 
-      {/* View tabs */}
       <div className="flex items-center gap-1 mb-4 border-b border-surface-border pb-3">
         {(['split', 'diff', 'review'] as const).map(tab => (
           <button
@@ -177,29 +134,26 @@ export default function ReviewPage() {
         </div>
       </div>
 
-      {/* Split / single views */}
       <div
         className={`min-h-[600px] rounded-xl border border-surface-border overflow-hidden bg-surface-card ${
           activeTab === 'split' ? 'grid grid-cols-2 divide-x divide-surface-border' : ''
         }`}
       >
-        {/* Diff panel */}
         {(activeTab === 'split' || activeTab === 'diff') && (
           <div className={`overflow-auto ${activeTab !== 'split' ? 'h-[700px]' : ''}`}>
             <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-2.5 bg-surface-card border-b border-surface-border">
               <span className="text-xs font-medium text-slate-300">Code Diff</span>
-              <span className="text-xs text-slate-600 font-mono">UserController.java</span>
+              <span className="text-xs text-slate-600 font-mono">{job.repoId}</span>
             </div>
             <DiffViewer diff={diff} />
           </div>
         )}
 
-        {/* Review panel */}
         {(activeTab === 'split' || activeTab === 'review') && (
           <div className="overflow-auto">
             <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-2.5 bg-surface-card border-b border-surface-border">
               <span className="text-xs font-medium text-slate-300">AI Review</span>
-              <span className="text-xs text-slate-600">LangChain4j · RAG</span>
+              <span className="text-xs text-slate-600">LangChain4j - RAG</span>
             </div>
             <ReviewPanel markdown={job.reviewMarkdown} status={job.status} />
           </div>

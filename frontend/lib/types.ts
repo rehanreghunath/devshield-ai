@@ -1,4 +1,4 @@
-export type JobStatus = 'QUEUED' | 'PARSING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED'
+export type JobStatus = 'QUEUED' | 'RATE_LIMITED' | 'PARSING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED'
 
 export interface AnalysisJob {
   id: string
@@ -9,6 +9,7 @@ export interface AnalysisJob {
   status: JobStatus
   reviewMarkdown: string | null
   errorMessage: string | null
+  diff: string | null
   createdAt: string
   updatedAt: string
 }
@@ -22,18 +23,22 @@ export interface ReviewResult {
   message?: string
 }
 
-export interface WebhookPayload {
-  repoId: string
-  prNumber: number
-  diff: string
-  prTitle?: string
-  author?: string
-  baseBranch?: string
-  headBranch?: string
+export interface GitHubRepo {
+  id: number
+  full_name: string
+  name: string
+  owner: { login: string; avatar_url: string }
+  description: string | null
+  private: boolean
+  language: string | null
+  updated_at: string
+  html_url: string
 }
 
-export interface WebhookResponse {
-  jobId: string
-  status: string
-  message: string
+export interface WatchedRepo {
+  id: string
+  userId: string
+  githubRepoId: number
+  fullName: string
+  createdAt: string
 }

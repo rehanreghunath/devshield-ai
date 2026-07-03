@@ -14,6 +14,7 @@ public class WebFluxConfig implements WebFluxConfigurer {
                 .allowedOriginPatterns("http://localhost:3000", "http://frontend:3000", "http://*.devshield.ai")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
+                .allowCredentials(true)
                 .maxAge(3600);
     }
 }

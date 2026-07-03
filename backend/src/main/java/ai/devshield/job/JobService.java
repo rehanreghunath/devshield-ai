@@ -2,7 +2,6 @@ package ai.devshield.job;
 
 import ai.devshield.rag.RagOrchestrator;
 import ai.devshield.webhook.PullRequestPayload;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +13,6 @@ import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -30,22 +28,29 @@ public class JobService {
     private final ObjectMapper objectMapper;
     private final RagOrchestrator ragOrchestrator;
 
-    // Enqueue
-
     public Mono<AnalysisJob> enqueue(PullRequestPayload payload) {
         String jobId = UUID.randomUUID().toString();
         AnalysisJob job = new AnalysisJob(
                 jobId, payload.repoId(), payload.prNumber(),
                 payload.prTitle(), payload.author(),
-                JobStatus.QUEUED, null, null,
+                JobStatus.QUEUED, null, null, payload.diff(),
                 Instant.now(), Instant.now()
         );
         return persist(job)
-                .then(Mono.fromRunnable(() -> triggerAsync(payload, job)))
+                .then(Mono.fromRunnable(() -> triggerAsync(job)))
                 .thenReturn(job);
     }
 
-    // State Transitions 
+    public Mono<AnalysisJob> enqueueDeferred(PullRequestPayload payload) {
+        String jobId = UUID.randomUUID().toString();
+        AnalysisJob job = new AnalysisJob(
+                jobId, payload.repoId(), payload.prNumber(),
+                payload.prTitle(), payload.author(),
+                JobStatus.RATE_LIMITED, null, null, payload.diff(),
+                Instant.now(), Instant.now()
+        );
+        return persist(job).thenReturn(job);
+    }
 
     public Mono<AnalysisJob> transition(String jobId, JobStatus newStatus) {
         return fetch(jobId)
@@ -62,8 +67,6 @@ public class JobService {
                 .flatMap(job -> persist(job.withError(error)));
     }
 
-    // Query 
-
     public Mono<AnalysisJob> fetch(String jobId) {
         return redisTemplate.opsForValue()
                 .get(JOB_KEY_PREFIX + jobId)
@@ -79,7 +82,22 @@ public class JobService {
                 .onErrorContinue((err, id) -> log.warn("Skipping stale job ref {}: {}", id, err.getMessage()));
     }
 
-    // Persistence
+    public Flux<AnalysisJob> fetchByStatus(JobStatus status) {
+        return fetchAll().filter(job -> job.status() == status);
+    }
+
+    public void triggerAsync(AnalysisJob job) {
+        transition(job.id(), JobStatus.PARSING)
+                .then(transition(job.id(), JobStatus.IN_PROGRESS))
+                .then(ragOrchestrator.analyze(job.id(), job.diff()))
+                .flatMap(markdown -> complete(job.id(), markdown))
+                .onErrorResume(err -> {
+                    log.error("RAG analysis failed for job={}: {}", job.id(), err.getMessage(), err);
+                    return fail(job.id(), err.getMessage());
+                })
+                .subscribeOn(Schedulers.boundedElastic())
+                .subscribe();
+    }
 
     private Mono<AnalysisJob> persist(AnalysisJob job) {
         return Mono.fromCallable(() -> objectMapper.writeValueAsString(job))
@@ -89,20 +107,5 @@ public class JobService {
                                 .then(redisTemplate.opsForSet().add(JOB_INDEX_KEY, job.id()))
                 )
                 .thenReturn(job);
-    }
-
-    // Async Pipeline Trigger
-
-    private void triggerAsync(PullRequestPayload payload, AnalysisJob job) {
-        transition(job.id(), JobStatus.PARSING)
-                .then(transition(job.id(), JobStatus.IN_PROGRESS))
-                .then(ragOrchestrator.analyze(job.id(), payload.diff()))
-                .flatMap(markdown -> complete(job.id(), markdown))
-                .onErrorResume(err -> {
-                    log.error("RAG analysis failed for job={}: {}", job.id(), err.getMessage(), err);
-                    return fail(job.id(), err.getMessage());
-                })
-                .subscribeOn(Schedulers.boundedElastic())
-                .subscribe();
     }
 }

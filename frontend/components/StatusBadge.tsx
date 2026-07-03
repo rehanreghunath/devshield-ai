@@ -11,6 +11,11 @@ const STATUS_CONFIG: Record<JobStatus, { label: string; classes: string; dotClas
     classes: 'bg-slate-700/60 text-slate-300 border border-slate-600/50',
     dotClasses: 'bg-slate-400',
   },
+  RATE_LIMITED: {
+    label: 'Rate Limited',
+    classes: 'bg-orange-500/10 text-orange-300 border border-orange-500/30',
+    dotClasses: 'bg-orange-400',
+  },
   PARSING: {
     label: 'Parsing',
     classes: 'bg-blue-500/10 text-blue-300 border border-blue-500/30',
@@ -35,7 +40,7 @@ const STATUS_CONFIG: Record<JobStatus, { label: string; classes: string; dotClas
 
 export function StatusBadge({ status, animated = true }: StatusBadgeProps) {
   const cfg = STATUS_CONFIG[status]
-  const isActive = status === 'PARSING' || status === 'IN_PROGRESS'
+  const isActive = status === 'PARSING' || status === 'IN_PROGRESS' || status === 'RATE_LIMITED'
   return (
     <span className={`badge ${cfg.classes}`}>
       <span

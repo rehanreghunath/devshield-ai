@@ -49,4 +49,7 @@ devshield:
   rag:
     top-k-rules: 5
     similarity-threshold: 0.75
-  demo-mode: ${DEMO_MODE:true}   # When true, skips real LLM calls and returns mock review
+  demo-mode: ${DEMO_MODE:true}
+  github:
+    webhook-secret: ${GITHUB_WEBHOOK_SECRET:}
+    token: ${GITHUB_TOKEN:}

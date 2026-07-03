@@ -1,4 +1,4 @@
-import type { AnalysisJob, ReviewResult, WebhookPayload, WebhookResponse } from './types'
+import type { AnalysisJob, ReviewResult, GitHubRepo, WatchedRepo } from './types'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? ''
 
@@ -7,11 +7,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response
   try {
     res = await fetch(url, {
-      headers: { 'Content-Type': 'application/json', ...init?.headers },
       ...init,
+      headers: { 'Content-Type': 'application/json', ...init?.headers },
     })
   } catch (err) {
-    // TypeError = network-level failure (ECONNREFUSED, no backend, CORS preflight crash)
     if (err instanceof TypeError) {
       throw new Error(
         `Backend unreachable at ${BASE || 'http://localhost:8080'}. ` +
@@ -27,6 +26,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
+function authHeaders(token: string): Record<string, string> {
+  return { Authorization: `Bearer ${token}` }
+}
+
 export const api = {
   jobs: {
     list: () => request<AnalysisJob[]>('/api/jobs'),
@@ -35,11 +38,23 @@ export const api = {
   reviews: {
     get: (jobId: string) => request<ReviewResult>(`/api/reviews/${jobId}`),
   },
-  webhooks: {
-    submit: (payload: WebhookPayload) =>
-      request<WebhookResponse>('/api/webhooks/github', {
+  user: {
+    me: (token: string) =>
+      request<Record<string, unknown>>('/api/user/me', { headers: authHeaders(token) }),
+    repos: (token: string) =>
+      request<GitHubRepo[]>('/api/user/repos', { headers: authHeaders(token) }),
+    watchedRepos: (token: string) =>
+      request<WatchedRepo[]>('/api/user/repos/watched', { headers: authHeaders(token) }),
+    addRepo: (token: string, githubRepoId: number, fullName: string) =>
+      request<WatchedRepo>('/api/user/repos', {
         method: 'POST',
-        body: JSON.stringify(payload),
+        headers: authHeaders(token),
+        body: JSON.stringify({ githubRepoId, fullName }),
+      }),
+    removeRepo: (token: string, githubRepoId: number) =>
+      request<void>(`/api/user/repos/${githubRepoId}`, {
+        method: 'DELETE',
+        headers: authHeaders(token),
       }),
   },
 }

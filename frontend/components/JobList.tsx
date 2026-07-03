@@ -37,7 +37,7 @@ export function JobList({ initialJobs = [] }: JobListProps) {
     return () => clearInterval(id)
   }, [fetchJobs])
 
-  const activeCount = jobs.filter(j => j.status === 'IN_PROGRESS' || j.status === 'PARSING' || j.status === 'QUEUED').length
+  const activeCount = jobs.filter(j => j.status === 'IN_PROGRESS' || j.status === 'PARSING' || j.status === 'QUEUED' || j.status === 'RATE_LIMITED').length
 
   return (
     <div>
