@@ -11,7 +11,7 @@ public class WebFluxConfig implements WebFluxConfigurer {
     @Override
     public void addCorsMappings(@NonNull CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOriginPatterns("http://localhost:3000", "http://frontend:3000", "http://*.devshield.ai", "https://devshieldai.online", "https://*.devshieldai.online")
+                .allowedOriginPatterns("http://localhost:3000", "http://frontend:3000", "https://devshieldai.online", "https://*.devshieldai.online")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)
