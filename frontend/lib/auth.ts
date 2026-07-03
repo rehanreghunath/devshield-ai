@@ -22,7 +22,7 @@ export const authOptions: NextAuthOptions = {
         // sync user to backend
         const backendUrl = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
         try {
-          await fetch(`${backendUrl}/api/auth/sync`, {
+          const res = await fetch(`${backendUrl}/api/auth/sync`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -33,8 +33,11 @@ export const authOptions: NextAuthOptions = {
               accessToken: token.accessToken,
             }),
           })
-        } catch {
-          // backend may be unavailable during dev
+          if (!res.ok) {
+            console.error("Backend returned error during sync:", res.status, await res.text())
+          }
+        } catch (e) {
+          console.error("Network error during sync to backend:", e)
         }
       }
       return token
