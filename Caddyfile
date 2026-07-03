@@ -1,14 +1,11 @@
 {$PUBLIC_DOMAIN:http://localhost} {
-    # Route webhook and API traffic to the backend
-    handle /api/webhooks/* {
-        reverse_proxy backend:8080
+    # NextAuth handles authentication
+    handle /api/auth/* {
+        reverse_proxy frontend:3000
     }
 
-    handle /api/jobs* {
-        reverse_proxy backend:8080
-    }
-
-    handle /api/reviews* {
+    # All other API traffic goes to the backend
+    handle /api/* {
         reverse_proxy backend:8080
     }
 
